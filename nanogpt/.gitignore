@@ -1,0 +1,7 @@
+# 数据与产物
+*.bin
+*.pkl
+data/**/input.txt
+out*/
+__pycache__/
+*.pyc
