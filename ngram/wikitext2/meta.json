@@ -1,0 +1,12 @@
+{
+  "dataset": "Salesforce/wikitext",
+  "dataset_config": "wikitext-2-raw-v1",
+  "tokenizer": "gpt2",
+  "vocab_size": 50257,
+  "dtype": "uint16",
+  "splits": {
+    "train": 2428601,
+    "val": 251048,
+    "test": 287644
+  }
+}
