@@ -1,0 +1,28 @@
+# Core dependencies for LSTM baseline project (GPU ONLY)
+#
+# ============================================================
+# Step 1: Install GPU PyTorch (REQUIRED — CPU is not supported)
+# ============================================================
+#
+#   Most GPUs (GTX 10xx, RTX 20xx/30xx/40xx/50xx, A-series):
+#     pip install torch>=2.12.0 --index-url https://download.pytorch.org/whl/cu124
+#
+#   RTX 50xx Blackwell (CUDA 12.8 required):
+#     pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu128
+#
+#   Verify GPU is visible:
+#     python -c "import torch; assert torch.cuda.is_available(), 'GPU not found'"
+#
+# ============================================================
+# Step 2: Install remaining dependencies
+# ============================================================
+#   pip install -r LSTM_baseline/requirements.txt
+#
+# Note: torch is NOT listed below — install it manually per instructions above.
+
+numpy
+transformers
+datasets
+tiktoken
+tqdm
+matplotlib
