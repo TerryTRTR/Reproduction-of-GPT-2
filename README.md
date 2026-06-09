@@ -5,6 +5,35 @@
 
 ---
 
+## 0. 当前仓库状态（2026-06-09）
+
+本仓库目前已经合并三条 baseline / 主方法代码：
+
+| 模块 | 路径 | 当前状态 |
+|---|---|---|
+| N-gram baseline | `ngram/` | 已实现 3-gram 评测，已有 val/test PPL 结果 |
+| LSTM baseline | `LSTM_baseline/` | 已实现约 14M 参数 LSTM，已复跑得到可比结果 |
+| nanoGPT | `nanogpt/` | 已实现 GPT-style Transformer，已有 14M 与 44M WikiText-2 checkpoint 结果 |
+
+当前重要文档：
+
+| 文档 | 用途 |
+|---|---|
+| `BASELINE_COMPARISON.md` | 三方 baseline 指标、同 prompt 输出样例、当前预处理差异提醒 |
+| `OPTIMIZATION_TASKS.md` | 后续三人共同优化 nanoGPT 的详细任务分配，包括 LoRA 路线 |
+| `nanogpt/EXPERIMENT_RESULTS.md` | nanoGPT 训练结果、过拟合分析、与 LSTM 对比解释 |
+| `nanogpt/PROJECT_HANDOFF.md` | nanoGPT 环境、训练配置、迁移与运行记录 |
+
+当前开发重点已经从“各自完成 baseline”转为：
+
+```text
+统一数据和评测 -> 固定 baseline 结果 -> 三人共同优化 nanoGPT
+```
+
+特别注意：当前三块代码的 WikiText-2 token 数略有差异，最终报告前必须统一预处理和评测脚本后重新跑最终结果。
+
+---
+
 ## 1. 项目定位与核心论点
 
 - **不复现** GPT-2 124M 完整训练（需 8×A100 跑 4 天，不现实）。
@@ -135,23 +164,26 @@ ds = load_dataset("wikitext", "wikitext-2-raw-v1")   # train/validation/test 已
 
 ## 6. 分工与时间线（3 人：A / B / C）
 
-### 角色分配
-| 成员 | 主要职责 | 产出 |
-|---|---|---|
-| **成员 A** | Baseline-1：**N-gram 语言模型**（bigram/trigram + Kneser-Ney/加一平滑） | `baselines/ngram.py`、在 WikiText-2 上的 PPL/BPC |
-| **成员 B** | Baseline-2：**LSTM/RNN 语言模型** | `baselines/lstm.py`、在 WikiText-2 上的 PPL/BPC |
-| **成员 C** | **nanoGPT 复现**：跑通训练、默认配置复现、后续调优/消融 | 训练好的 GPT、默认 & 调优版结果 |
+### 当前分工原则
 
-> 共享基础设施（全员协作、最先完成）：**统一数据集预处理脚本** `data/wikitext2/prepare.py`（下载 → GPT-2 BPE 分词 → 生成 `train.bin/val.bin/test.bin`）+ **统一评测脚本** `eval/eval_lm.py`（计算 PPL/BPC）。A/B/C 三方都调用同一份，保证可比。
+Baseline 已经基本完成，后续三个人共同转向 nanoGPT 优化：
+
+| 成员 | 后续重点 | 主要职责 |
+|---|---|---|
+| **成员 A** | nanoGPT 数据与评测 | 统一 WikiText-2 预处理、统一 eval、结果表、loss 曲线、定性样例汇总 |
+| **成员 B** | nanoGPT 超参与训练实验 | 学习率/dropout/block_size sweep，多随机种子，整理训练日志 |
+| **成员 C** | nanoGPT 架构与 LoRA | RoPE/RMSNorm/SwiGLU/LoRA 实现与消融实验 |
+
+N-gram 与 LSTM 后续只做必要维护：保证能复现指标、能生成同 prompt 样例、能接入统一评测脚本。详细任务见 `OPTIMIZATION_TASKS.md`。
 
 ### 时间线
 | 阶段 | 内容 | 负责 |
 |---|---|---|
-| **W1（先做）** | **统一数据集**：写好 `prepare.py` 与评测脚本，固定 train/val/test 划分与 GPT-2 BPE 词表；环境搭建；跑通 char-Shakespeare 验证流程 | 全员 |
-| W2 | A：N-gram baseline ｜ B：LSTM baseline ｜ C：nanoGPT 默认复现 | A / B / C 并行 |
-| W3 | A/B：baseline 调参与收尾 ｜ C：优化超参搜索 + 架构改动（RoPE/SwiGLU/RMSNorm） | A / B / C |
-| W4 | 三方结果汇总进总表、（可选）LAMBADA 下游评测、多种子复跑、画 scaling 曲线 | 全员 |
-| W5 | 写 6 页 NeurIPS 报告、整理代码与 README、准备答辩 | 全员 |
+| W1 | Baseline 代码合并：N-gram / LSTM / nanoGPT | 已完成 |
+| W2 | 统一数据预处理与评测脚本，重新确认三方 baseline 指标 | 全员 |
+| W3 | nanoGPT 超参搜索：LR / dropout / block_size / 多种子 | A / B / C |
+| W4 | nanoGPT 架构与 LoRA 消融：RoPE / RMSNorm / SwiGLU / LoRA | A / B / C |
+| W5 | 汇总结果、写报告、整理答辩材料 | 全员 |
 
 ---
 
