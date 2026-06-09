@@ -18,7 +18,15 @@ here = os.path.dirname(__file__)
 enc = tiktoken.get_encoding("gpt2")
 
 print("loading wikitext-2-raw-v1 ...")
-ds = load_dataset("wikitext", "wikitext-2-raw-v1")
+base_url = "https://huggingface.co/datasets/Salesforce/wikitext/resolve/main/wikitext-2-raw-v1"
+ds = load_dataset(
+    "parquet",
+    data_files={
+        "train": f"{base_url}/train-00000-of-00001.parquet",
+        "validation": f"{base_url}/validation-00000-of-00001.parquet",
+        "test": f"{base_url}/test-00000-of-00001.parquet",
+    },
+)
 
 # HF 的 validation 在本仓库里命名为 val.bin
 split_to_filename = {"train": "train.bin", "validation": "val.bin", "test": "test.bin"}
