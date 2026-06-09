@@ -1,0 +1,32 @@
+==========================================================
+  LSTM Language Model Baseline — Training Report
+==========================================================
+
+  Dataset:      WikiText-2
+  Tokenizer:    GPT-2 BPE  (vocab = 50257)
+
+  ── Model ──
+    Embedding dim  : 256
+    LSTM layers    : 2
+    Block size     : 128
+    Batch size     : 64
+    Dropout        : 0.2
+    Weight tying   : True
+    Total params   : 13.91M
+
+  ── Optimizer ──
+    Learning rate  : 0.003
+    Min LR         : 0.0001
+    Warmup iters   : 200
+    Weight decay   : 0.01
+    Gradient clip  : 1.0
+    Max iterations : 2000
+
+  ── Results ──
+    Best Val   | loss=5.4428  ppl=231.1  bpc=7.8523
+    Val (full) | loss=5.4349  ppl=229.3  bpc=7.8409
+    Test       | loss=5.4881  ppl=241.8  bpc=7.9176
+
+    Uniform baseline PPL = 50257  (x207.9 reduction)
+
+==========================================================
