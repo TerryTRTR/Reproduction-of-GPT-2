@@ -23,10 +23,10 @@
     Max iterations : 2000
 
   ── Results ──
-    Best Val   | loss=5.4428  ppl=231.1  bpc=7.8523
-    Val (full) | loss=5.4349  ppl=229.3  bpc=7.8409
-    Test       | loss=5.4881  ppl=241.8  bpc=7.9176
+    Best Val   | loss=5.4346  ppl=229.2  bpc=7.8405
+    Val (full) | loss=5.4351  ppl=229.3  bpc=7.8412
+    Test       | loss=5.4756  ppl=238.8  bpc=7.8997
 
-    Uniform baseline PPL = 50257  (x207.9 reduction)
+    Uniform baseline PPL = 50257  (x210.5 reduction)
 
 ==========================================================

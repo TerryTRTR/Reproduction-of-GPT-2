@@ -3,3 +3,18 @@ __pycache__/
 *.py[cod]
 data/wikitext2/*.bin
 data/wikitext2/meta.json
+
+# Local checkpoints / generated training outputs
+*.pt
+*.pth
+*.ckpt
+**/ckpt*.pt
+**/__pycache__/
+**/*.py[cod]
+wandb/
+runs/
+logs/
+
+# Local editor state
+.vscode/
+.idea/
