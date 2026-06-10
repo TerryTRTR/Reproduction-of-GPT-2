@@ -1,0 +1,44 @@
+{
+  "B6-s42": {
+    "name": "B6-s42",
+    "learning_rate": 0.0003,
+    "min_lr": 3e-05,
+    "dropout": 0.2,
+    "block_size": 256,
+    "out_dir": "out-wikitext2-14m-lr3e4-drop02-bs256-s42",
+    "seed": 42,
+    "desc": "\u591a\u79cd\u5b50\u9a8c\u8bc1 (seed=42)",
+    "best_val_loss": 5.0355,
+    "best_iter": 6000,
+    "elapsed_minutes": 25.5,
+    "success": true
+  },
+  "B6-s123": {
+    "name": "B6-s123",
+    "learning_rate": 0.0003,
+    "min_lr": 3e-05,
+    "dropout": 0.2,
+    "block_size": 256,
+    "out_dir": "out-wikitext2-14m-lr3e4-drop02-bs256-s123",
+    "seed": 123,
+    "desc": "\u591a\u79cd\u5b50\u9a8c\u8bc1 (seed=123)",
+    "best_val_loss": 5.0186,
+    "best_iter": 4900,
+    "elapsed_minutes": 23.7,
+    "success": true
+  },
+  "B6-s456": {
+    "name": "B6-s456",
+    "learning_rate": 0.0003,
+    "min_lr": 3e-05,
+    "dropout": 0.2,
+    "block_size": 256,
+    "out_dir": "out-wikitext2-14m-lr3e4-drop02-bs256-s456",
+    "seed": 456,
+    "desc": "\u591a\u79cd\u5b50\u9a8c\u8bc1 (seed=456)",
+    "best_val_loss": 5.0255,
+    "best_iter": 6000,
+    "elapsed_minutes": 23.5,
+    "success": true
+  }
+}

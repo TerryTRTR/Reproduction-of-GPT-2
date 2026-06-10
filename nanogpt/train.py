@@ -63,6 +63,7 @@ lr_decay_iters = 600000
 min_lr = 6e-5
 # DDP
 backend = "nccl"            # Windows 下若多卡可改 'gloo'
+seed = 1337
 # 系统
 device = "cuda"             # 'cuda' | 'cpu' | 'cuda:0' | 'mps' 等
 dtype = (
@@ -105,7 +106,7 @@ print(f"tokens per iteration will be: {tokens_per_iter:,}")
 
 if master_process:
     os.makedirs(out_dir, exist_ok=True)
-torch.manual_seed(1337 + seed_offset)
+torch.manual_seed(seed + seed_offset)
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 device_type = "cuda" if "cuda" in device else "cpu"
