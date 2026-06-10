@@ -1,0 +1,14 @@
+{
+  "dataset": "Salesforce/wikitext",
+  "dataset_config": "wikitext-2-raw-v1",
+  "source": "https://huggingface.co/datasets/Salesforce/wikitext/resolve/main/wikitext-2-raw-v1",
+  "tokenizer": "tiktoken/gpt2",
+  "vocab_size": 50257,
+  "dtype": "uint16",
+  "preprocessing": "concat_rows_per_split_no_special_tokens",
+  "splits": {
+    "train": 2391884,
+    "val": 247289,
+    "test": 283287
+  }
+}
