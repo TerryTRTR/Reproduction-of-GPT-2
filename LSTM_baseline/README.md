@@ -1,6 +1,6 @@
 # LSTM Baseline — WikiText-2 语言模型基线
 
-GPT-2 复现项目（CS182 Track C）的 LSTM 语言模型基线。使用 WikiText-2 数据集与 GPT-2 BPE 分词器，与 N-gram 和 nanoGPT 进行公平对比。
+GPT-2 复现项目（CS182 Track C）的 LSTM 语言模型基线。默认使用仓库根目录 `data/wikitext2` 中的 WikiText-2 + GPT-2 BPE 统一数据，与 N-gram 和 nanoGPT 进行公平对比。
 
 **模型架构**：多层 LSTM + LayerNorm + 权重绑定，约 14M 参数，单 GPU **5 分钟内**完成训练。
 
@@ -17,9 +17,8 @@ python -c "import torch; assert torch.cuda.is_available(), 'GPU not found'"
 # 2. 安装其余依赖
 pip install -r LSTM_baseline/requirements.txt
 
-# 3. 准备数据（下载 WikiText-2，GPT-2 BPE 分词）
-#    HuggingFace 不可用时使用镜像：
-HF_ENDPOINT=https://hf-mirror.com python LSTM_baseline/src/prepare_data.py
+# 3. 准备统一数据（在仓库根目录）
+python data/wikitext2/prepare.py
 
 # 4. 训练（从 LSTM_baseline 目录运行，RTX 3060 约 8 分钟）
 cd LSTM_baseline
@@ -39,7 +38,7 @@ LSTM_baseline/
 │   ├── eval_lm.py           # 独立 PPL/BPC 评测
 │   ├── config_lstm.py       # 训练超参数
 │   └── visualize.py         # 结果报告 + 损失曲线
-├── data/wikitext2/          # 分词后的 .bin 文件（自动生成）
+├── data/wikitext2/          # 旧 LSTM 本地预处理数据，仅作开发记录
 ├── out/                     # 模型 checkpoint、结果、图表
 ├── requirements.txt
 └── README.md
@@ -78,9 +77,9 @@ python src/eval_lm.py --checkpoint=out/ckpt_best.pt
 
 | 划分 | Loss | PPL | BPC |
 |:---|---:|---:|---:|
-| Best Val | 5.44 | 230.0 | 7.85 |
-| Val (full) | 5.45 | 232.1 | 7.86 |
-| **Test** | **5.51** | **248.3** | **7.96** |
+| Best Val | 5.5046 | 245.8 | 7.9414 |
+| Val (full) | 5.5037 | 245.6 | 7.9401 |
+| **Test** | **5.5611** | **260.1** | **8.0230** |
 
 > 均匀分布基线（随机）：PPL = 50,257。模型实现了约 200 倍的降低。
 

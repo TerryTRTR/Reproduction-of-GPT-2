@@ -1,0 +1,23 @@
+{
+  "model": "ngram",
+  "name": "3-gram",
+  "params": null,
+  "data_dir": "/home/terrxzy/code/CS182/MLproject/Reproduction-of-GPT-2/data/wikitext2",
+  "train_tokens": 2391884,
+  "vocab_size": 50257,
+  "alpha": 0.1,
+  "lambdas": [
+    0.14285714285714285,
+    0.2857142857142857,
+    0.5714285714285714
+  ],
+  "train_seconds": 5.158054231986171,
+  "val_loss": 7.1943854840112795,
+  "val_ppl": 1331.9315807946416,
+  "val_bpc": 10.379304260026618,
+  "val_tokens": 247287,
+  "test_loss": 7.21513953066784,
+  "test_ppl": 1359.8633974961729,
+  "test_bpc": 10.409246020216417,
+  "test_tokens": 283285
+}

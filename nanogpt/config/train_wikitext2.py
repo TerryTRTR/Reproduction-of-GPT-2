@@ -9,6 +9,7 @@ log_interval = 10
 always_save_checkpoint = False
 
 dataset = "wikitext2"
+data_dir = "../data/wikitext2"
 # 有效 batch = batch_size * gradient_accumulation_steps * block_size 个 token
 gradient_accumulation_steps = 8
 batch_size = 12

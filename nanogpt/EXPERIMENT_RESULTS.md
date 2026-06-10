@@ -104,17 +104,17 @@ checkpoint 只在验证集 loss 创新低时保存，因此下表记录的是当
 
 | Model | Params | Best Iter | Val Loss ↓ | Val PPL ↓ | Notes |
 |---|---:|---:|---:|---:|---|
-| LSTM baseline | ~14M | - | 5.40 | 221.41 | 同参数量级神经 baseline |
-| nanoGPT 14M | 14.28M | 1600 | 5.1680 | 175.56 | 参数匹配 Transformer |
+| LSTM baseline | 13.92M | 1000 | 5.5037 | 245.59 | 统一 nanoGPT 数据重训 |
+| nanoGPT 14M | 14.28M | 1600 | 5.1721 | 176.29 | 参数匹配 Transformer，统一 full-split eval |
 | nanoGPT 44M | 44.64M | 750 | 5.0809 | 160.92 | 更大 GPT-2 mini，后期过拟合明显 |
 
 相对于 LSTM baseline，14M nanoGPT 的 perplexity 改善为：
 
 ```text
-(221.41 - 175.56) / 221.41 = 20.7%
+(245.59 - 176.29) / 245.59 = 28.2%
 ```
 
-虽然交叉熵 loss 只下降约 `0.23`，但换算成 perplexity 后约有 20% 的相对改善。
+虽然交叉熵 loss 只下降约 `0.33`，但换算成 perplexity 后约有 28% 的相对改善。
 
 ---
 
@@ -171,7 +171,7 @@ LSTM 和 nanoGPT 都是神经语言模型，因此主要采用同参数量级对
 
 ## 8. 可写入报告的结论草稿
 
-在参数匹配设置下，14.28M 参数的 nanoGPT 在 WikiText-2 validation split 上取得 `5.1680` 的最佳 validation loss，对应 perplexity 为 `175.56`。相同参数量级的 LSTM baseline validation loss 为约 `5.40`，perplexity 为 `221.41`。nanoGPT 将 perplexity 降低约 `20.7%`，说明 self-attention 架构在相同数据与分词设置下优于循环结构。
+在参数匹配设置下，14.28M 参数的 nanoGPT 在统一 WikiText-2 validation split 上取得 `5.1721` 的 validation loss，对应 perplexity 为 `176.29`。相同参数量级的 LSTM baseline validation loss 为 `5.5037`，perplexity 为 `245.59`。nanoGPT 将 perplexity 降低约 `28.2%`，说明 self-attention 架构在相同数据与分词设置下优于循环结构。
 
 不过，该优势并非压倒性。主要原因是 WikiText-2 数据规模较小，只有约 2.39M BPE training tokens，而 Transformer 从零训练通常需要更大的语料才能充分发挥优势。实验中 44.64M 参数的 nanoGPT 虽然取得更低的最佳 validation loss `5.0809`，但很快出现 train loss 下降而 validation loss 上升的过拟合现象。这表明在小数据设置下，继续扩大模型规模并不一定带来稳定泛化收益。
 

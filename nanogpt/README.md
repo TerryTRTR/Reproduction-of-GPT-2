@@ -19,9 +19,10 @@ nanogpt/
 │   ├── train_shakespeare_char.py   # ~10M 字符级配置（debug，几分钟跑通）
 │   └── train_wikitext2.py          # 主线 "GPT-2 mini"（BPE）
 └── data/
-    ├── shakespeare_char/prepare.py # tiny shakespeare → 字符词表 → train/val.bin + meta.pkl
-    └── wikitext2/prepare.py        # wikitext-2-raw-v1 → GPT-2 BPE → train/val/test.bin
+    └── shakespeare_char/prepare.py # tiny shakespeare → 字符词表 → train/val.bin + meta.pkl
 ```
+
+WikiText-2 主线数据已移动到仓库根目录 `data/wikitext2/`，供 N-gram、LSTM 和 nanoGPT 共用。
 
 ## 环境
 
@@ -45,7 +46,9 @@ python sample.py --out_dir=out-shakespeare-char
 ## 主线（WikiText-2 + GPT-2 BPE）
 
 ```bash
+cd ..
 python data/wikitext2/prepare.py
+cd nanogpt
 python train.py config/train_wikitext2.py --compile=False
 python sample.py --out_dir=out-wikitext2
 ```
@@ -72,5 +75,5 @@ python generate_fixed.py --out_dir=out-shakespeare-char --prompts_file=prompts_s
 
 ## 说明
 
-- 所有路径默认相对 `nanogpt/` 运行；`out_dir`（checkpoint 输出目录）也相对运行目录。
-- 数据脚本会在各自的 `data/<name>/` 下生成 `.bin` 与 `meta.pkl`；`train.py` 通过 `dataset` 配置项定位它们。
+- `out_dir`（checkpoint 输出目录）默认相对 `nanogpt/` 运行目录。
+- Shakespeare 字符级数据仍在 `nanogpt/data/shakespeare_char/`；WikiText-2 BPE 数据由配置中的 `data_dir = "../data/wikitext2"` 指向仓库共享目录。

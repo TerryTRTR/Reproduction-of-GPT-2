@@ -40,7 +40,9 @@ def load_vocab_size(data_dir: Path, train_tokens: list[int]) -> int:
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
         if "vocab_size" in meta:
             return int(meta["vocab_size"])
-    return int(train_tokens.max()) + 1
+    # WikiText-2 files in this project use GPT-2 BPE. Some high token ids may be
+    # absent from the train split, but they still belong to the model vocabulary.
+    return max(max(train_tokens) + 1, 50257)
 
 
 def build_counts(tokens: list[int], n: int) -> list[Counts]:
@@ -129,7 +131,11 @@ def evaluate(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data_dir", type=Path, default=Path("data/wikitext2"))
+    parser.add_argument(
+        "--data_dir",
+        type=Path,
+        default=Path(__file__).resolve().parents[2] / "data" / "wikitext2",
+    )
     parser.add_argument("--n", type=int, default=3, choices=range(1, 6))
     parser.add_argument("--alpha", type=float, default=0.1)
     parser.add_argument(

@@ -216,7 +216,9 @@ Windows 若 `torch.compile` 报错，始终加 `--compile=False`。
 
 ```powershell
 pip install datasets tiktoken transformers
+cd ..
 python data/wikitext2/prepare.py
+cd nanogpt
 python train.py config/train_wikitext2.py --compile=False
 ```
 
@@ -289,7 +291,7 @@ flowchart TD
 ## 11. 下一步优先级（GPU 机器上）
 
 1. 安装 CUDA 版 torch + `pip install -r requirements.txt`
-2. `python data/wikitext2/prepare.py`
+2. `cd .. && python data/wikitext2/prepare.py && cd nanogpt`
 3. `python train.py config/train_wikitext2.py --compile=False`（主线正式训练）
 4. 记录最优 val loss / PPL / BPC
 5. `python generate_fixed.py --out_dir=out-wikitext2 --prompts_file=prompts_wikitext.txt`

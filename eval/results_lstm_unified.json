@@ -1,0 +1,17 @@
+{
+  "model": "lstm",
+  "name": "LSTM",
+  "params": 13918976,
+  "checkpoint": "LSTM_baseline/out/ckpt_best.pt",
+  "data_dir": "/home/terrxzy/code/CS182/MLproject/Reproduction-of-GPT-2/data/wikitext2",
+  "block_size": 128,
+  "batch_size": 64,
+  "val_loss": 5.503652888465458,
+  "val_ppl": 245.58739912573523,
+  "val_bpc": 7.940092728963336,
+  "val_tokens": 247168,
+  "test_loss": 5.561119024644758,
+  "test_ppl": 260.11374721794067,
+  "test_bpc": 8.022998838648261,
+  "test_tokens": 283264
+}

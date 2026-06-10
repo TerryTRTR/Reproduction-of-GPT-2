@@ -1,0 +1,25 @@
+{
+  "decode": "greedy",
+  "max_new_tokens": 60,
+  "data_dir": "/home/terrxzy/code/CS182/MLproject/Reproduction-of-GPT-2/data/wikitext2",
+  "samples": [
+    {
+      "prompt": "The meaning of life is",
+      "ngram": "The meaning of life is a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \" a \"",
+      "lstm": "The meaning of life is the first time of the war . \n = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =",
+      "nanogpt_14m": "The meaning of life is a very good enough to be a good job . \n = = = = = = \n The marriage of marriage = = = = = \n The marriage of marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage"
+    },
+    {
+      "prompt": "In the beginning",
+      "ngram": "In the beginning of the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time ,",
+      "lstm": "In the beginning of the war . \n = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =",
+      "nanogpt_14m": "In the beginning of the war , the war was held in the war . \n = = = = World War II = = = \n The war was the first war in the war , and the war was held in the war . The war was held in the war , and the war was held in the"
+    },
+    {
+      "prompt": "The history of the United States",
+      "ngram": "The history of the United States , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time",
+      "lstm": "The history of the United States , and the first time of the American Civil War . \n = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =",
+      "nanogpt_14m": "The history of the United States , and the United States . \n = = = Background = = \n The United States entered the United States in the United States , and was a United States Navy vessel named in the United States . The United States entered the United States in the United States . The United States entered the United States"
+    }
+  ]
+}

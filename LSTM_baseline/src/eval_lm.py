@@ -2,7 +2,7 @@
 Unified evaluation script for language models on WikiText-2.
 
 Computes PPL (Perplexity) and BPC (Bits Per Character) on val/test splits.
-Works with the binary tokenized data produced by src/prepare_data.py.
+Defaults to the shared project-standard data in data/wikitext2.
 
 Usage:
     cd LSTM_baseline
@@ -26,7 +26,7 @@ from src.lstm import LSTMLM, evaluate_full
 
 
 def evaluate_lstm(checkpoint_path: str, data_dir: str, device: str = None,
-                  batch_size: int = 64, block_size: int = 256,
+                  batch_size: int = 64, block_size: int = None,
                   max_batches: int = None) -> dict:
     """
     Evaluate a trained LSTM model on val and test sets.
@@ -49,6 +49,8 @@ def evaluate_lstm(checkpoint_path: str, data_dir: str, device: str = None,
     print(f"Loading checkpoint: {checkpoint_path}")
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     ckpt_config = checkpoint.get("config", {})
+    if block_size is None:
+        block_size = ckpt_config.get("block_size", 256)
 
     # Build model from checkpoint config
     model = LSTMLM(
@@ -102,13 +104,13 @@ def main():
     parser.add_argument("--checkpoint", type=str, required=True,
                         help="Path to model checkpoint")
     parser.add_argument("--data_dir", type=str, default=None,
-                        help="Path to data directory (default: data/wikitext2)")
+                        help="Path to data directory (default: ../data/wikitext2)")
     parser.add_argument("--device", type=str, default=None,
                         help="Device (default: auto-detect)")
     parser.add_argument("--batch_size", type=int, default=64,
                         help="Evaluation batch size")
-    parser.add_argument("--block_size", type=int, default=256,
-                        help="Context block size")
+    parser.add_argument("--block_size", type=int, default=None,
+                        help="Context block size (default: checkpoint config)")
     parser.add_argument("--max_batches", type=int, default=None,
                         help="Max batches for evaluation (None=all)")
     parser.add_argument("--output", type=str, default=None,
@@ -119,11 +121,12 @@ def main():
 
     # Resolve data_dir
     project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_dir = args.data_dir or os.path.join(project_dir, "data", "wikitext2")
+    repo_dir = os.path.dirname(project_dir)
+    data_dir = args.data_dir or os.path.join(repo_dir, "data", "wikitext2")
 
     if not os.path.isdir(data_dir):
         print(f"Error: data directory not found: {data_dir}", file=sys.stderr)
-        print("Run 'python src/prepare_data.py' first.", file=sys.stderr)
+        print("Run 'python data/wikitext2/prepare.py' from the repo root first.", file=sys.stderr)
         sys.exit(1)
 
     # Evaluate

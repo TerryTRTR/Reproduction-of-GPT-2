@@ -39,6 +39,7 @@ always_save_checkpoint = False  # 若为 True，每次 eval 都保存（否则�
 init_from = "scratch"       # 'scratch' | 'resume' | 'gpt2*'
 # 数据
 dataset = "shakespeare_char"
+data_dir = ""                 # 可选：覆盖默认 data/<dataset>，例如 ../data/wikitext2
 gradient_accumulation_steps = 5 * 8
 batch_size = 12
 block_size = 1024
@@ -115,8 +116,8 @@ ctx = (
     else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 )
 
-# 数据加载：从 data/<dataset>/{train,val}.bin 用 memmap 读取
-data_dir = os.path.join("data", dataset)
+# 数据加载：默认从 data/<dataset> 读取；WikiText-2 可由 config 指向仓库共享目录。
+data_dir = data_dir or os.path.join("data", dataset)
 
 
 def get_batch(split):

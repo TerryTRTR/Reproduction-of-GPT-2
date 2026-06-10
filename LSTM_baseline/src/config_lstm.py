@@ -9,7 +9,7 @@ compile = False         # torch.compile — Linux only; set True if supported
 
 # ---- Output ----
 out_dir = "out"
-data_dir = "data/wikitext2"
+data_dir = "../data/wikitext2"  # shared project-standard WikiText-2 split
 
 # ---- Data ----
 vocab_size = 50257

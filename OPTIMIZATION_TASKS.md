@@ -43,12 +43,12 @@ A 的核心目标是保证所有实验“可比”。如果数据和评测不统
 
 | 任务 | 具体内容 | 交付物 |
 |---|---|---|
-| 统一数据预处理 | 检查 `ngram/`、`LSTM_baseline/`、`nanogpt/` 三份 prepare 逻辑；确定最终只使用一份 WikiText-2 + GPT-2 BPE `.bin` 文件 | 统一后的 prepare 脚本；三方 token 数一致截图/日志 |
-| 统一评测脚本 | 写或整合一个统一 `eval/eval_lm.py`，对 N-gram/LSTM/nanoGPT 都输出 val/test loss、PPL、BPC | `eval/eval_lm.py`；统一 JSON/表格输出 |
-| 定性样例汇总 | 固定 prompt、固定 decoding 设置，收集三方输出 | `BASELINE_COMPARISON.md` 中的样例表 |
-| 结果表维护 | 汇总 N-gram、LSTM、nanoGPT 默认版、nanoGPT 调优版指标 | 最终主结果表 |
-| 画图 | 根据训练日志画 loss curve、PPL 对比图、消融柱状图 | 报告用 figures |
-| 报告结果部分 | 负责 Results & Analysis 初稿 | 结果分析文字、图表说明 |
+| 统一数据预处理 | 检查 `ngram/`、`LSTM_baseline/`、`nanogpt/` 三份 prepare 逻辑；确定最终只使用一份 WikiText-2 + GPT-2 BPE `.bin` 文件 | 已采用 `data/wikitext2/{train,val,test}.bin` 作为统一口径，并已用该数据重训 LSTM |
+| 统一评测脚本 | 写或整合一个统一 `eval/eval_lm.py`，对 N-gram/LSTM/nanoGPT 都输出 val/test loss、PPL、BPC | 已新增 `eval/eval_lm.py`；统一 JSON 见 `eval/results_*_unified.json` |
+| 定性样例汇总 | 固定 prompt、固定 decoding 设置，收集三方输出 | 已新增 `eval/generate_samples.py`；输出见 `eval/fixed_samples_unified.{json,txt}` |
+| 结果表维护 | 汇总 N-gram、LSTM、nanoGPT 默认版、nanoGPT 调优版指标 | 主结果表已更新到 `BASELINE_COMPARISON.md` 第 2 节 |
+| 画图 | 根据训练日志画 loss curve、PPL 对比图、消融柱状图 | 已新增 `eval/plot_results.py`；图见 `eval/figures/` |
+| 报告结果部分 | 负责 Results & Analysis 初稿 | 已写入 `BASELINE_COMPARISON.md` 第 7-8 节；任务 A 总结见 `TASK_A_REPORT.md` |
 
 A 需要重点关注：
 
@@ -64,9 +64,9 @@ A 需要重点关注：
 
 ```bash
 # 目标：最终能一条命令评测三方模型
-python eval/eval_lm.py --model=ngram --...
-python eval/eval_lm.py --model=lstm --...
-python eval/eval_lm.py --model=nanogpt --...
+nanogpt/.venv/bin/python eval/eval_lm.py --model ngram --output eval/results_ngram_unified.json
+nanogpt/.venv/bin/python eval/eval_lm.py --model lstm --checkpoint LSTM_baseline/out/ckpt_best.pt --device cuda --batch_size 64 --output eval/results_lstm_unified.json
+nanogpt/.venv/bin/python eval/eval_lm.py --model nanogpt --checkpoint nanogpt/out-wikitext2-14m/ckpt.pt --device cuda --batch_size 4 --output eval/results_nanogpt14m_unified.json
 ```
 
 ### 2.2 B 的详细任务：nanoGPT 超参实验
@@ -257,7 +257,7 @@ LoRA 值得尝试，但实验定位要写清楚。由于当前 nanoGPT 是在 Wi
 | 模块 | 必做任务 | 可选任务 |
 |---|---|---|
 | N-gram | 接入共享数据；记录 val/test PPL；提供同 prompt 输出 | Kneser-Ney smoothing；报告 n-gram table size |
-| LSTM | 接入共享数据；保存可复现实验配置；提供同 prompt 输出 | 跑 3 seeds；尝试 20M-30M stronger LSTM |
+| LSTM | 已接入共享数据并重训；保存可复现实验配置；提供同 prompt 输出 | 跑 3 seeds；尝试 20M-30M stronger LSTM |
 | nanoGPT | 作为主优化对象持续迭代 | LoRA、RoPE、RMSNorm、SwiGLU、多种子 |
 
 ---

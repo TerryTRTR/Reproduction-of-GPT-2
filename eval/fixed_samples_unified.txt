@@ -1,0 +1,45 @@
+# Unified fixed-prompt samples
+# decode=greedy max_new_tokens=60
+
+## Prompt: The meaning of life is
+
+### 3-gram
+The meaning of life is a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a " a "
+
+### LSTM
+The meaning of life is the first time of the war . 
+ = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+### nanoGPT 14M
+The meaning of life is a very good enough to be a good job . 
+ = = = = = = 
+ The marriage of marriage = = = = = 
+ The marriage of marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage marriage
+
+## Prompt: In the beginning
+
+### 3-gram
+In the beginning of the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time ,
+
+### LSTM
+In the beginning of the war . 
+ = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+### nanoGPT 14M
+In the beginning of the war , the war was held in the war . 
+ = = = = World War II = = = 
+ The war was the first war in the war , and the war was held in the war . The war was held in the war , and the war was held in the
+
+## Prompt: The history of the United States
+
+### 3-gram
+The history of the United States , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time , and the first time
+
+### LSTM
+The history of the United States , and the first time of the American Civil War . 
+ = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+### nanoGPT 14M
+The history of the United States , and the United States . 
+ = = = Background = = 
+ The United States entered the United States in the United States , and was a United States Navy vessel named in the United States . The United States entered the United States in the United States . The United States entered the United States
