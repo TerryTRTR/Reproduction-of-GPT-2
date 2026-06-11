@@ -49,6 +49,17 @@ n_head = 12
 n_embd = 768
 dropout = 0.0
 bias = False
+use_rope = False
+use_rmsnorm = False
+use_swiglu = False
+swiglu_hidden_mult = 8 / 3
+use_lora = False
+lora_rank = 8
+lora_alpha = 16.0
+lora_dropout = 0.05
+lora_targets = "attn"
+lora_freeze_base = True
+lora_base_checkpoint = ""  # 可指向已有 full-training ckpt.pt，用其初始化 LoRA base
 # AdamW 优化器
 learning_rate = 6e-4
 max_iters = 600000
@@ -150,8 +161,56 @@ if os.path.exists(meta_path):
 model_args = dict(
     n_layer=n_layer, n_head=n_head, n_embd=n_embd, block_size=block_size,
     bias=bias, vocab_size=None, dropout=dropout,
+    use_rope=use_rope,
+    use_rmsnorm=use_rmsnorm,
+    use_swiglu=use_swiglu,
+    swiglu_hidden_mult=swiglu_hidden_mult,
+    use_lora=use_lora,
+    lora_rank=lora_rank,
+    lora_alpha=lora_alpha,
+    lora_dropout=lora_dropout,
+    lora_targets=lora_targets,
+    lora_freeze_base=lora_freeze_base,
 )
-if init_from == "scratch":
+base_model_arg_keys = ["n_layer", "n_head", "n_embd", "block_size", "bias", "vocab_size"]
+
+
+def load_base_weights_into_lora(model, state_dict):
+    """把普通 Linear checkpoint 权重映射到 LoRALinear.linear，LoRA adapter 保持初始化。"""
+    model_state = model.state_dict()
+    remapped = {}
+    for key, value in state_dict.items():
+        key = key.removeprefix("_orig_mod.")
+        if key in model_state:
+            remapped[key] = value
+            continue
+        if key.endswith(".weight") or key.endswith(".bias"):
+            prefix, suffix = key.rsplit(".", 1)
+            lora_key = f"{prefix}.linear.{suffix}"
+            if lora_key in model_state:
+                remapped[lora_key] = value
+    missing, unexpected = model.load_state_dict(remapped, strict=False)
+    unexpected = [k for k in unexpected if not k.endswith("attn.bias")]
+    missing_non_lora = [
+        k for k in missing
+        if ".lora_" not in k and not k.endswith("rope_inv_freq")
+    ]
+    if missing_non_lora or unexpected:
+        raise RuntimeError(
+            f"LoRA base checkpoint 加载不完整，missing={missing_non_lora}, unexpected={unexpected}"
+        )
+
+
+if use_lora and lora_base_checkpoint:
+    print(f"Initializing LoRA model from base checkpoint: {lora_base_checkpoint}")
+    checkpoint = torch.load(lora_base_checkpoint, map_location=device)
+    checkpoint_model_args = checkpoint["model_args"]
+    for k in base_model_arg_keys:
+        model_args[k] = checkpoint_model_args[k]
+    gptconf = GPTConfig(**model_args)
+    model = GPT(gptconf)
+    load_base_weights_into_lora(model, checkpoint["model"])
+elif init_from == "scratch":
     print("Initializing a new model from scratch")
     if meta_vocab_size is None:
         print("defaulting to vocab_size of GPT-2 to 50304 (50257 rounded up for efficiency)")
@@ -163,8 +222,9 @@ elif init_from == "resume":
     ckpt_path = os.path.join(out_dir, "ckpt.pt")
     checkpoint = torch.load(ckpt_path, map_location=device)
     checkpoint_model_args = checkpoint["model_args"]
-    for k in ["n_layer", "n_head", "n_embd", "block_size", "bias", "vocab_size"]:
-        model_args[k] = checkpoint_model_args[k]
+    for k in model_args:
+        if k in checkpoint_model_args:
+            model_args[k] = checkpoint_model_args[k]
     gptconf = GPTConfig(**model_args)
     model = GPT(gptconf)
     state_dict = checkpoint["model"]
@@ -179,7 +239,7 @@ elif init_from == "resume":
 elif init_from.startswith("gpt2"):
     print(f"Initializing from OpenAI GPT-2 weights: {init_from}")
     model = GPT.from_pretrained(init_from, dict(dropout=dropout))
-    for k in ["n_layer", "n_head", "n_embd", "block_size", "bias", "vocab_size"]:
+    for k in base_model_arg_keys:
         model_args[k] = getattr(model.config, k)
 else:
     raise ValueError(f"未知 init_from: {init_from}")
@@ -189,6 +249,12 @@ if block_size < model.config.block_size:
     model.crop_block_size(block_size)
     model_args["block_size"] = block_size
 model.to(device)
+if model.config.use_lora and model.config.lora_freeze_base:
+    model.mark_only_lora_as_trainable()
+print(
+    "trainable parameters: %.2fM / %.2fM"
+    % (model.get_num_trainable_params() / 1e6, model.get_num_params(non_embedding=False) / 1e6)
+)
 
 # GradScaler：仅 fp16 时启用
 scaler = torch.amp.GradScaler(enabled=(dtype == "float16"))

@@ -28,6 +28,16 @@ class GPTConfig:
     n_embd: int = 768
     dropout: float = 0.0
     bias: bool = True  # True 时 Linear/LayerNorm 带 bias（与 GPT-2 一致）；False 略快略好
+    use_rope: bool = False
+    use_rmsnorm: bool = False
+    use_swiglu: bool = False
+    swiglu_hidden_mult: float = 8 / 3
+    use_lora: bool = False
+    lora_rank: int = 8
+    lora_alpha: float = 16.0
+    lora_dropout: float = 0.05
+    lora_targets: str = "attn"
+    lora_freeze_base: bool = True
 
 
 class LayerNorm(nn.Module):
@@ -42,19 +52,102 @@ class LayerNorm(nn.Module):
         return F.layer_norm(x, self.weight.shape, self.weight, self.bias, 1e-5)
 
 
+class RMSNorm(nn.Module):
+    """RMSNorm：只按均方根归一化，现代 GPT 变体常用。"""
+
+    def __init__(self, ndim, eps=1e-5):
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(ndim))
+        self.eps = eps
+
+    def forward(self, x):
+        normed = x * torch.rsqrt(x.pow(2).mean(dim=-1, keepdim=True) + self.eps)
+        return normed * self.weight
+
+
+class LoRALinear(nn.Module):
+    """在线性层旁路添加低秩更新；base linear 可冻结，只训练 adapter。"""
+
+    def __init__(self, in_features, out_features, bias, rank, alpha, dropout):
+        super().__init__()
+        self.linear = nn.Linear(in_features, out_features, bias=bias)
+        self.rank = rank
+        self.scaling = alpha / rank
+        self.lora_dropout = nn.Dropout(dropout)
+        self.lora_a = nn.Linear(in_features, rank, bias=False)
+        self.lora_b = nn.Linear(rank, out_features, bias=False)
+        self.reset_lora_parameters()
+
+    def reset_lora_parameters(self):
+        nn.init.kaiming_uniform_(self.lora_a.weight, a=math.sqrt(5))
+        nn.init.zeros_(self.lora_b.weight)
+
+    def forward(self, x):
+        base = self.linear(x)
+        update = self.lora_b(self.lora_a(self.lora_dropout(x))) * self.scaling
+        return base + update
+
+
+def _make_norm(config):
+    return RMSNorm(config.n_embd) if config.use_rmsnorm else LayerNorm(config.n_embd, bias=config.bias)
+
+
+def _lora_target_enabled(config, target):
+    if not config.use_lora:
+        return False
+    targets = {t.strip() for t in config.lora_targets.split(",") if t.strip()}
+    if "all" in targets:
+        return True
+    if target.startswith("attn.") and "attn" in targets:
+        return True
+    if target.startswith("mlp.") and "mlp" in targets:
+        return True
+    return target in targets
+
+
+def _make_linear(config, in_features, out_features, target):
+    if _lora_target_enabled(config, target):
+        return LoRALinear(
+            in_features, out_features, config.bias,
+            config.lora_rank, config.lora_alpha, config.lora_dropout,
+        )
+    return nn.Linear(in_features, out_features, bias=config.bias)
+
+
+def _rotate_half(x):
+    x1, x2 = x[..., : x.size(-1) // 2], x[..., x.size(-1) // 2 :]
+    return torch.cat((-x2, x1), dim=-1)
+
+
+def _apply_rope(q, k, inv_freq):
+    T = q.size(-2)
+    pos = torch.arange(T, device=q.device, dtype=inv_freq.dtype)
+    freqs = torch.outer(pos, inv_freq)
+    emb = torch.cat((freqs, freqs), dim=-1)
+    cos = emb.cos()[None, None, :, :].to(dtype=q.dtype)
+    sin = emb.sin()[None, None, :, :].to(dtype=q.dtype)
+    return (q * cos) + (_rotate_half(q) * sin), (k * cos) + (_rotate_half(k) * sin)
+
+
 class CausalSelfAttention(nn.Module):
     def __init__(self, config):
         super().__init__()
         assert config.n_embd % config.n_head == 0
         # 一次性算出 q, k, v 的投影
-        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
+        self.c_attn = _make_linear(config, config.n_embd, 3 * config.n_embd, "attn.c_attn")
         # 输出投影
-        self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = _make_linear(config, config.n_embd, config.n_embd, "attn.c_proj")
         self.attn_dropout = nn.Dropout(config.dropout)
         self.resid_dropout = nn.Dropout(config.dropout)
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         self.dropout = config.dropout
+        self.use_rope = config.use_rope
+        head_dim = config.n_embd // config.n_head
+        if self.use_rope:
+            assert head_dim % 2 == 0, "RoPE 需要偶数 head_dim"
+            inv_freq = 1.0 / (10000 ** (torch.arange(0, head_dim, 2).float() / head_dim))
+            self.register_buffer("rope_inv_freq", inv_freq, persistent=False)
         # PyTorch >= 2.0 才有 scaled_dot_product_attention（Flash / 内存高效注意力）
         self.flash = hasattr(F, "scaled_dot_product_attention")
         if not self.flash:
@@ -75,6 +168,8 @@ class CausalSelfAttention(nn.Module):
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        if self.use_rope:
+            q, k = _apply_rope(q, k, self.rope_inv_freq)
 
         if self.flash:
             y = F.scaled_dot_product_attention(
@@ -98,14 +193,25 @@ class CausalSelfAttention(nn.Module):
 class MLP(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.c_fc = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
+        self.use_swiglu = config.use_swiglu
+        hidden_dim = int(config.swiglu_hidden_mult * config.n_embd) if self.use_swiglu else 4 * config.n_embd
+        self.c_fc = _make_linear(
+            config,
+            config.n_embd,
+            2 * hidden_dim if self.use_swiglu else hidden_dim,
+            "mlp.c_fc",
+        )
         self.gelu = nn.GELU()
-        self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = _make_linear(config, hidden_dim, config.n_embd, "mlp.c_proj")
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
         x = self.c_fc(x)
-        x = self.gelu(x)
+        if self.use_swiglu:
+            x, gate = x.chunk(2, dim=-1)
+            x = F.silu(gate) * x
+        else:
+            x = self.gelu(x)
         x = self.c_proj(x)
         x = self.dropout(x)
         return x
@@ -116,9 +222,9 @@ class Block(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
+        self.ln_1 = _make_norm(config)
         self.attn = CausalSelfAttention(config)
-        self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
+        self.ln_2 = _make_norm(config)
         self.mlp = MLP(config)
 
     def forward(self, x):
@@ -137,10 +243,10 @@ class GPT(nn.Module):
         self.transformer = nn.ModuleDict(
             dict(
                 wte=nn.Embedding(config.vocab_size, config.n_embd),   # token 嵌入
-                wpe=nn.Embedding(config.block_size, config.n_embd),   # 学习式绝对位置嵌入
+                wpe=None if config.use_rope else nn.Embedding(config.block_size, config.n_embd),
                 drop=nn.Dropout(config.dropout),
                 h=nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
-                ln_f=LayerNorm(config.n_embd, bias=config.bias),
+                ln_f=_make_norm(config),
             )
         )
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
@@ -149,9 +255,12 @@ class GPT(nn.Module):
         self.transformer.wte.weight = self.lm_head.weight
 
         self.apply(self._init_weights)
+        for module in self.modules():
+            if isinstance(module, LoRALinear):
+                module.reset_lora_parameters()
         # 对残差投影做特殊缩放初始化（GPT-2 论文做法）
         for pn, p in self.named_parameters():
-            if pn.endswith("c_proj.weight"):
+            if pn.endswith("c_proj.weight") or pn.endswith("c_proj.linear.weight"):
                 torch.nn.init.normal_(p, mean=0.0, std=0.02 / math.sqrt(2 * config.n_layer))
 
         print("number of parameters: %.2fM" % (self.get_num_params() / 1e6,))
@@ -159,9 +268,17 @@ class GPT(nn.Module):
     def get_num_params(self, non_embedding=True):
         """统计参数量。默认不计入位置嵌入（习惯上不算）。token 嵌入因权重绑定也算在 lm_head 里。"""
         n_params = sum(p.numel() for p in self.parameters())
-        if non_embedding:
+        if non_embedding and self.transformer.wpe is not None:
             n_params -= self.transformer.wpe.weight.numel()
         return n_params
+
+    def get_num_trainable_params(self):
+        return sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+    def mark_only_lora_as_trainable(self):
+        """冻结 base 权重，仅训练 LoRA adapter。"""
+        for name, param in self.named_parameters():
+            param.requires_grad = ".lora_" in name
 
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
@@ -177,11 +294,13 @@ class GPT(nn.Module):
         assert t <= self.config.block_size, (
             f"序列长度 {t} 超过 block_size {self.config.block_size}"
         )
-        pos = torch.arange(0, t, dtype=torch.long, device=device)
-
         tok_emb = self.transformer.wte(idx)   # (b, t, n_embd)
-        pos_emb = self.transformer.wpe(pos)    # (t, n_embd)
-        x = self.transformer.drop(tok_emb + pos_emb)
+        if self.transformer.wpe is None:
+            x = self.transformer.drop(tok_emb)
+        else:
+            pos = torch.arange(0, t, dtype=torch.long, device=device)
+            pos_emb = self.transformer.wpe(pos)    # (t, n_embd)
+            x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
             x = block(x)
         x = self.transformer.ln_f(x)
@@ -202,9 +321,10 @@ class GPT(nn.Module):
         """把模型的 block_size 裁短（例如加载较大的预训练模型后用更短的上下文）。"""
         assert block_size <= self.config.block_size
         self.config.block_size = block_size
-        self.transformer.wpe.weight = nn.Parameter(
-            self.transformer.wpe.weight[:block_size]
-        )
+        if self.transformer.wpe is not None:
+            self.transformer.wpe.weight = nn.Parameter(
+                self.transformer.wpe.weight[:block_size]
+            )
         for block in self.transformer.h:
             if hasattr(block.attn, "bias"):
                 block.attn.bias = block.attn.bias[:, :, :block_size, :block_size]

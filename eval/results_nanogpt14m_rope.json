@@ -1,0 +1,19 @@
+{
+  "model": "nanogpt",
+  "name": "nanoGPT",
+  "params": 14281120,
+  "checkpoint": "nanogpt\\out-wikitext2-14m-rope\\ckpt.pt",
+  "best_iter": 1000,
+  "best_val_loss_in_ckpt": 5.082720756530762,
+  "data_dir": "C:\\Users\\28918\\Desktop\\Reproduction-of-GPT-2\\data\\wikitext2",
+  "block_size": 512,
+  "batch_size": 8,
+  "val_loss": 5.091607172954132,
+  "val_ppl": 162.65106048711274,
+  "val_bpc": 7.345636418575601,
+  "val_tokens": 246784,
+  "test_loss": 5.153742985958217,
+  "test_ppl": 173.0781083500506,
+  "test_bpc": 7.435279447858198,
+  "test_tokens": 283136
+}
