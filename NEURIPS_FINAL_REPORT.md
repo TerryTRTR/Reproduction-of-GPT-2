@@ -239,6 +239,26 @@ We also ran shortened 3000-iteration diagnostic curves for the default nanoGPT a
 
 The default model has much lower training loss at 3000 iterations but worse validation loss. This is one of the clearest signs of the project's main pattern: on WikiText-2, fitting the training set harder is not the same as generalizing better. The final model is not simply "more expressive"; it is better regularized and has a more suitable architecture.
 
+### 4.5 Qualitative Examples
+
+We also generated fixed-prompt samples with greedy decoding and `max_new_tokens=60`. These examples are not used for model selection, but they make the failure modes easier to see. The table below shows one representative prompt; the full sample file contains additional prompts such as `The meaning of life is` and `The history of the United States`.
+
+**Prompt:** `In the beginning`
+
+| Model | Output excerpt |
+|---|---|
+| 3-gram | `In the beginning of the first time , and the first time , and the first time , and the first time , ...` |
+| LSTM | `In the beginning of the war . = = = = = = = = = = = = = = = = = = ...` |
+| nanoGPT 14M | `In the beginning of the war , the war was held in the war . = = = = World War II = = = The war was the first war ...` |
+
+The qualitative pattern matches the quantitative results. The N-gram model mostly repeats a short local phrase because it has no mechanism for longer-range planning. The LSTM captures common WikiText article structure, including section separators, but often falls into repeated heading-like tokens. The nanoGPT continuation is still repetitive, but it is more document-like: it uses a plausible topic, an article-style heading, and a longer continuation with more global structure. This does not mean that the small nanoGPT is a strong open-ended generator. Rather, it shows that even at 14M parameters, the Transformer baseline has a better inductive bias for WikiText-style language modeling than the simpler baselines.
+
+Complete fixed-prompt samples are stored in:
+
+```text
+eval/fixed_samples_unified.txt
+```
+
 ## 5. Discussion
 
 ### 5.1 The data fix mattered
@@ -332,4 +352,3 @@ Shazeer. GLU Variants Improve Transformer. 2020.
 Hu et al. LoRA: Low-Rank Adaptation of Large Language Models. ICLR, 2022.
 
 Karpathy. nanoGPT. GitHub repository.
-
