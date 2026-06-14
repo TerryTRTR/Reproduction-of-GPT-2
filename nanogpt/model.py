@@ -93,6 +93,7 @@ def _make_norm(config):
 
 
 def _lora_target_enabled(config, target):
+    """Return whether a named projection should be wrapped with LoRA adapters."""
     if not config.use_lora:
         return False
     targets = {t.strip() for t in config.lora_targets.split(",") if t.strip()}
@@ -115,11 +116,13 @@ def _make_linear(config, in_features, out_features, target):
 
 
 def _rotate_half(x):
+    # RoPE treats adjacent halves as 2D rotation pairs: (x1, x2) -> (-x2, x1).
     x1, x2 = x[..., : x.size(-1) // 2], x[..., x.size(-1) // 2 :]
     return torch.cat((-x2, x1), dim=-1)
 
 
 def _apply_rope(q, k, inv_freq):
+    """Apply rotary position embedding to q/k without changing tensor shapes."""
     T = q.size(-2)
     pos = torch.arange(T, device=q.device, dtype=inv_freq.dtype)
     freqs = torch.outer(pos, inv_freq)
@@ -208,6 +211,7 @@ class MLP(nn.Module):
     def forward(self, x):
         x = self.c_fc(x)
         if self.use_swiglu:
+            # SwiGLU splits the projection into value and gate branches.
             x, gate = x.chunk(2, dim=-1)
             x = F.silu(gate) * x
         else:

@@ -67,6 +67,8 @@ def conditional_prob(
     if not counts:
         return 1.0 / vocab_size
     total = sum(counts.values())
+    # Add-alpha smoothing keeps unseen continuations from receiving zero
+    # probability, which would otherwise make perplexity infinite.
     return (counts.get(token, 0) + alpha) / (total + alpha * vocab_size)
 
 
@@ -81,6 +83,8 @@ def interpolated_prob(
     n = len(tables)
     prob = 0.0
     for order in range(1, n + 1):
+        # Interpolation backs off smoothly from high-order contexts to lower
+        # orders instead of using a hard fallback rule.
         order_context = context[-(order - 1) :] if order > 1 else ()
         prob += lambdas[order - 1] * conditional_prob(
             token, order_context, tables[order - 1], vocab_size, alpha

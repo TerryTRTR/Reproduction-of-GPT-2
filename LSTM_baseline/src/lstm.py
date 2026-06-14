@@ -170,7 +170,11 @@ def get_batch_sequential(data: np.ndarray, batch_size: int, block_size: int,
 @torch.no_grad()
 def estimate_loss(model: nn.Module, data: np.ndarray, eval_iters: int,
                   batch_size: int, block_size: int, device: str) -> dict:
-    """Estimate loss over many batches."""
+    """Estimate loss from random batches during training.
+
+    This is fast enough to run frequently, but it is noisier than the final
+    full-split evaluation used in the reported tables.
+    """
     model.eval()
     losses = torch.zeros(eval_iters)
     for k in range(eval_iters):
@@ -189,7 +193,7 @@ def estimate_loss(model: nn.Module, data: np.ndarray, eval_iters: int,
 @torch.no_grad()
 def evaluate_full(model: nn.Module, data: np.ndarray, batch_size: int,
                   block_size: int, device: str, max_batches: int = None) -> dict:
-    """Evaluate over the entire dataset (or max_batches) sequentially."""
+    """Evaluate sequentially over the full split for comparable PPL/BPC."""
     model.eval()
     total_loss = 0.0
     total_tokens = 0

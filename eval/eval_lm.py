@@ -48,6 +48,7 @@ def load_uint16(path: Path) -> np.ndarray:
 
 
 def metric_row(split: str, stats: dict[str, float]) -> dict[str, float]:
+    """Convert split metrics to flat JSON fields used by all model types."""
     loss = float(stats["loss"])
     return {
         f"{split}_loss": loss,
@@ -151,6 +152,8 @@ def evaluate_nanogpt_split(
 
         usable = min(remaining, batch_size * block_size)
         num_blocks = usable // block_size
+        # Full-split evaluation walks through the token stream sequentially.
+        # This avoids random-batch noise and makes final PPL comparable across runs.
         x_np = data[start : start + num_blocks * block_size].astype(np.int64)
         y_np = data[start + 1 : start + 1 + num_blocks * block_size].astype(np.int64)
         x = torch.from_numpy(x_np).view(num_blocks, block_size).to(device)

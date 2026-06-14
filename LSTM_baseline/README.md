@@ -4,6 +4,8 @@ GPT-2 复现项目（CS182 Track C）的 LSTM 语言模型基线。默认使用�
 
 **模型架构**：多层 LSTM + LayerNorm + 权重绑定，约 14M 参数，单 GPU **5 分钟内**完成训练。
 
+**负责人**：Julinjie，负责 LSTM baseline 实现、训练与结果整理。
+
 ## 快速开始
 
 ```bash
@@ -33,15 +35,20 @@ python src/visualize.py
 ```
 LSTM_baseline/
 ├── src/
-│   ├── prepare_data.py      # 下载并分词 WikiText-2
+│   ├── prepare_data.py      # 可选：重新下载并分词 WikiText-2
 │   ├── lstm.py              # 模型定义 + 训练循环
 │   ├── eval_lm.py           # 独立 PPL/BPC 评测
 │   ├── config_lstm.py       # 训练超参数
 │   └── visualize.py         # 结果报告 + 损失曲线
-├── data/wikitext2/          # 旧 LSTM 本地预处理数据，仅作开发记录
-├── out/                     # 模型 checkpoint、结果、图表
+├── out/                     # 本地生成的 checkpoint、结果、图表（不提交）
 ├── requirements.txt
 └── README.md
+```
+
+最终对比请使用仓库根目录的共享数据：
+
+```text
+../data/wikitext2/{train,val,test}.bin
 ```
 
 ## 模型结构

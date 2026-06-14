@@ -12,6 +12,24 @@ wandb/
 runs/
 logs/
 
+# Generated model outputs and local duplicate data
+out/
+out-*/
+**/out/
+**/out-*/
+LSTM_baseline/data/wikitext2/
+ngram/wikitext2/
+
+# Keep final shared data tracked under data/wikitext2/
+!data/
+!data/wikitext2/
+!data/wikitext2/README.md
+!data/wikitext2/prepare.py
+!data/wikitext2/meta.json
+!data/wikitext2/train.bin
+!data/wikitext2/val.bin
+!data/wikitext2/test.bin
+
 # Local editor state
 .vscode/
 .idea/

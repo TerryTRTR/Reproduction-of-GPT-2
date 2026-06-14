@@ -1,8 +1,14 @@
-# nanoGPT 复现（成员 C 核心复现）
+# nanoGPT 复现与优化
 
-本文件夹是对 Karpathy [nanoGPT](https://github.com/karpathy/nanoGPT) 的**从零干净复现**（结构对齐、代码自写），用于 CS182 课程项目的 GPT-2 复现部分。范围为**核心复现**：GPT 模型、训练循环、文本采样、数据预处理与默认配置。架构改进（RoPE / SwiGLU / RMSNorm）与 PPL/BPC 评测脚本留作后续单独添加。
+本文件夹是对 Karpathy [nanoGPT](https://github.com/karpathy/nanoGPT) 的小规模复现与扩展，用于 CS182 课程项目的 GPT-style language model 实验。代码包含基础 GPT 模型、训练循环、采样脚本，以及 RoPE / RMSNorm / SwiGLU / LoRA 等结构改动。
 
-> **迁移到新机器？** 见 [PROJECT_HANDOFF.md](PROJECT_HANDOFF.md)（含当前训练记录、环境、配置、GPU 搭建步骤）。
+## 成员分工
+
+| 成员 | 负责内容 |
+|---|---|
+| Xuzhenyu | nanoGPT 主体复现、共享数据接入、统一评估和最终仓库整理 |
+| Julinjie | nanoGPT 超参数调优，包括 B6 配置和多种子结果整理 |
+| Juran | LoRA 调优实验，以及与 N-gram baseline 的结果对接 |
 
 ## 目录结构
 
@@ -17,7 +23,9 @@ nanogpt/
 ├── configurator.py                 # 命令行 / 配置文件覆盖工具
 ├── config/
 │   ├── train_shakespeare_char.py   # ~10M 字符级配置（debug，几分钟跑通）
-│   └── train_wikitext2.py          # 主线 "GPT-2 mini"（BPE）
+│   ├── train_wikitext2_14m.py      # 14M default baseline
+│   ├── train_wikitext2_14m_b6.py   # tuned hyperparameters
+│   └── train_wikitext2_14m_modern_b6.py # final model config
 └── data/
     └── shakespeare_char/prepare.py # tiny shakespeare → 字符词表 → train/val.bin + meta.pkl
 ```
