@@ -204,6 +204,7 @@ nanogpt/.venv/bin/python eval/plot_final_results.py
 ## Notes
 
 - Checkpoints and local training outputs are intentionally ignored by git.
+- Checkpoints referenced in the report are local training artifacts and are not included in the submission package; rerun the training commands above to recreate them.
 - The tracked data in `data/wikitext2` is the single source of truth for final comparisons.
 - Training-log validation loss is a random-batch estimate; final tables use full-split evaluation.
 - The saved 3000-iteration diagnostic figure is only for showing optimization behavior. The main results use 6000-iteration checkpoints.
