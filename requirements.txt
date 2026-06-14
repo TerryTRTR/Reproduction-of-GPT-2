@@ -1,0 +1,11 @@
+# Shared dependencies for the final project code.
+# For CUDA-specific PyTorch wheels, follow the PyTorch install selector if needed.
+
+torch>=2.0.0
+numpy
+matplotlib
+transformers
+datasets
+tiktoken
+tqdm
+requests

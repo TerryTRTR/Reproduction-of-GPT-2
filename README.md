@@ -60,9 +60,7 @@ cd /path/to/Reproduction-of-GPT-2
 python -m venv nanogpt/.venv
 source nanogpt/.venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r nanogpt/requirements.txt
-python -m pip install -r LSTM_baseline/requirements.txt
-python -m pip install -r ngram/requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 If dependencies are already installed, you can simply use:
